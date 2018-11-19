@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:component-scan base-package="spring.cn.wang.advice" />
+    <context:component-scan base-package="spring.cn.wang.service" />
+    <!-- 这里true表示cglib，false表示jdk，使用注解方式必须启用CGLIB方式-->
+    <aop:aspectj-autoproxy proxy-target-class="true"></aop:aspectj-autoproxy>
+
+    <!--<bean id="myAdvice" class="spring.cn.wang.advice.MyAdvice"></bean>-->
+    <!--<bean id="myThrowAdvice" class="spring.cn.wang.advice.MyThrowAdvice"></bean>-->
+    <!--<bean id="myAspectAdvice" class="spring.cn.wang.advice.MyAspectAdvice"></bean>-->
+    <!--<bean id="myArround" class="spring.cn.wang.advice.MyArround"></bean>-->
+    <!--<aop:config>-->
+        <!--<aop:pointcut id="myPointCut" expression="execution(* spring.cn.wang.service.*.*())"></aop:pointcut>-->
+        <!--<aop:advisor advice-ref="myAdvice" pointcut-ref="myPointCut"></aop:advisor>-->
+        <!--<aop:advisor advice-ref="myThrowAdvice" pointcut-ref="myPointCut"></aop:advisor>-->
+        <!--<aop:advisor advice-ref="myArround" pointcut-ref="myPointCut"></aop:advisor>-->
+
+        <!--<aop:aspect ref="myAspectAdvice">-->
+            <!--&lt;!&ndash; 这样制定切点参数形式的方式，可能会导致我们需要多次写切点,特别是针对函数重载的情况，所以如果需要使用参数，这种aspect方式反而比较复杂 &ndash;&gt;-->
+            <!--<aop:pointcut id="myAspectPointCut" expression="execution(* spring.cn.wang.service.*.*(String,int)) and args(name,age)"></aop:pointcut>-->
+            <!--<aop:before method="advice1" arg-names="name,age" pointcut-ref="myAspectPointCut"></aop:before>-->
+        <!--</aop:aspect>-->
+
+
+    <!--</aop:config>-->
+    <!--<bean id="peopleService" class="spring.cn.wang.service.PeopleSerivce"></bean>-->
+</beans>
