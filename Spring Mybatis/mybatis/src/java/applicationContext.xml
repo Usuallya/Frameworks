@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+    <!--<bean id="schema-advice" class="cn.bupt.mybatis.advice.MyThrowAdvice" />-->
+    <!--<bean id="Advice" class="cn.bupt.mybatis.advice.Advice"></bean>-->
+<!--<aop:config>-->
+    <!--<aop:aspect ref="Advice">-->
+  <!--<aop:pointcut id="s" expression="execution(* cn.bupt.mybatis.service.impl.PeopleService.demo1())"></aop:pointcut>-->
+        <!--<aop:after-throwing method="Demo1Throws" pointcut-ref="s" throwing="e"></aop:after-throwing>-->
+    <!--</aop:aspect>-->
+<!--</aop:config>-->
+    <!--<aop:aspectj-autoproxy  proxy-target-class="true"/>-->
+    <bean id="peopleService" class="cn.bupt.mybatis.service.impl.PeopleService"></bean>
+    <bean id="Advice" class="cn.bupt.mybatis.advice.Advice"></bean>
+</beans>
