@@ -1,0 +1,8 @@
+整合springmvc和mybatis，实现一个简单的crud操作功能
+首先加入srpingmvc和mybatis,mysql的依赖，然后需要在application.properties中配置相关信息。这个配置文件替代了以前所有的配置文件。
+可以在这里配置数据源这类spring配置文件的内容，以及别名这类mappers.xml的内容。
+
+最后，需要在启动类中加入mapper扫描注解，来发现mybatis的mapper。
+
+ps：springboot好像对这个web-inf下发现jsp文件支持的不好啊，webapp这个目录编译之后放在哪里？  为啥/web-inf/下的就访问不到，webapp下的就可以？
+

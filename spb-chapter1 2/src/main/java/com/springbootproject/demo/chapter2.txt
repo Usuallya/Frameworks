@@ -1,0 +1,11 @@
+Spring Boot整合servlet，两种方法，一种是扫描注解，自动整合，一种是自己编写方法，并以@Bean的形式引入容器。
+
+Spring Boot整合Filter和Listener，类似于Servlet也是通过注解扫描和方法来完成引入。不同的是，在启动器上依然使用ServletComponentScan,而不是新的注解
+
+Spring Boot访问静态资源时会从两个位置访问静态资源，第一种是 在classpath下，找static目录，第二种是从servletContext根目录去找。所谓ServletContext根目录，就是指
+src/main下的webapp目录，名字必须是webapp，如果没有，需要自己创建一个
+
+Spring Boot整合Spring MVC完成文件上传：
+首先编写一个Controller和用户上传文件的页面，这个页面可以放在静态文件夹static中。然后写一个控制器，处理上传文件就行了。
+需要注意的是，这里可能会出现上传文件大小限制导致的报错，可以通过修改spring boot配置文件解决，这个配置文件必须放在resources目录下。叫application.properties
+
