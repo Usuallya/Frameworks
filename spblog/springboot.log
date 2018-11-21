@@ -1,0 +1,8 @@
+2018-11-21 17:34:11.747  INFO 13788 --- [main] com.wang.spblog.SpblogApplicationTests   : Starting SpblogApplicationTests on DESKTOP-66UHOIN with PID 13788 (started by 王海奇 in C:\git\Frameworks\spblog)
+2018-11-21 17:34:11.749 DEBUG 13788 --- [main] com.wang.spblog.SpblogApplicationTests   : Running with Spring Boot v2.1.0.RELEASE, Spring v5.1.2.RELEASE
+2018-11-21 17:34:11.758  INFO 13788 --- [main] com.wang.spblog.SpblogApplicationTests   : No active profile set, falling back to default profiles: default
+2018-11-21 17:34:15.188  INFO 13788 --- [main] o.s.s.concurrent.ThreadPoolTaskExecutor  : Initializing ExecutorService 'applicationTaskExecutor'
+2018-11-21 17:34:15.882  INFO 13788 --- [main] com.wang.spblog.SpblogApplicationTests   : Started SpblogApplicationTests in 5.494 seconds (JVM running for 8.351)
+2018-11-21 17:34:16.668 DEBUG 13788 --- [main] com.wang.spblog.SpblogApplicationTests   : debug
+2018-11-21 17:34:16.672 ERROR 13788 --- [main] com.wang.spblog.SpblogApplicationTests   : error
+2018-11-21 17:34:16.683  INFO 13788 --- [Thread-1] o.s.s.concurrent.ThreadPoolTaskExecutor  : Shutting down ExecutorService 'applicationTaskExecutor'

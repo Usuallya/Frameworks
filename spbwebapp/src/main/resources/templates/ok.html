@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thymeleaf渲染页面</title>
+</head>
+<body>
+<p>Thymeleaf渲染页面</p>
+<div th:id="div1" th:class="111" th:text="${hello}">显示欢迎信息</div>
+
+<div>
+    <!--th:each将会生成多次当前标签 -->
+    <h4 th:text="${one}" th:each="one:${ones}"></h4>
+    <!--[[]]相当于th:text [()]相当于是th:utext -->
+    <span th:each="one:${ones}">[[${one}]]</span>
+</div>
+</body>
+</html>

@@ -4,5 +4,7 @@
 
 最后，需要在启动类中加入mapper扫描注解，来发现mybatis的mapper。
 
+本章中还加入了配置文件的内容，包括YAML和properties两种格式。
+
 ps：springboot好像对这个web-inf下发现jsp文件支持的不好啊，webapp这个目录编译之后放在哪里？  为啥/web-inf/下的就访问不到，webapp下的就可以？
 
