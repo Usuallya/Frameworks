@@ -2,77 +2,55 @@
 
 映射规则写在WebMVCAutoConfiguration类中
 
-​        public void addResourceHandlers(ResourceHandlerRegistry registry) {
+``` java
+ public void addResourceHandlers(ResourceHandlerRegistry registry) {
+           if (!this.resourceProperties.isAddMappings()) {
+               logger.debug("Default resource handling disabled");
+          } else {
+            Duration cachePeriod = this.resourceProperties.getCache().getPeriod();
+               CacheControl cacheControl = this.resourceProperties.getCache().getCachecontrol().toHttpCacheControl();
 
-​            if (!this.resourceProperties.isAddMappings()) {
+               if (!registry.hasMappingForPattern("/webjars/**")) {                  this.customizeResourceHandlerRegistration(registry.addResourceHandler(new String[]{"/webjars/**"}).addResourceLocations(new String[]{"classpath:/META-INF/resources/webjars/"}).setCachePeriod(this.getSeconds(cachePeriod)).setCacheControl(cacheControl));
+               }
+              String staticPathPattern = this.mvcProperties.getStaticPathPattern();
+               if (!registry.hasMappingForPattern(staticPathPattern)) {
+                  this.customizeResourceHandlerRegistration(registry.addResourceHandler(new String[]{staticPathPattern}).addResourceLocations(getResourceLocations(this.resourceProperties.getStaticLocations())).setCachePeriod(this.getSeconds(cachePeriod)).setCacheControl(cacheControl));
+              }
+          }
+       }
+```
 
-​                logger.debug("Default resource handling disabled");
-
-​            } else {
-
-​                Duration cachePeriod = this.resourceProperties.getCache().getPeriod();
-
-​                CacheControl cacheControl = this.resourceProperties.getCache().getCachecontrol().toHttpCacheControl();
-
-​                if (!registry.hasMappingForPattern("/webjars/**")) {
-
-​                    this.customizeResourceHandlerRegistration(registry.addResourceHandler(new String[]{"/webjars/**"}).addResourceLocations(new String[]{"classpath:/META-INF/resources/webjars/"}).setCachePeriod(this.getSeconds(cachePeriod)).setCacheControl(cacheControl));
-
-​                }
-
- 
-
-​                String staticPathPattern = this.mvcProperties.getStaticPathPattern();
-
-​                if (!registry.hasMappingForPattern(staticPathPattern)) {
-
-​                    this.customizeResourceHandlerRegistration(registry.addResourceHandler(new String[]{staticPathPattern}).addResourceLocations(getResourceLocations(this.resourceProperties.getStaticLocations())).setCachePeriod(this.getSeconds(cachePeriod)).setCacheControl(cacheControl));
-
-​                }
-
- 
-
-​            }
-
-​        }
-
- 
-
-规则1：所有/webjars/**，都去classpath:/META-INF/resources/webjars/下找资源
+- 规则1：所有/webjars/**，都去classpath:/META-INF/resources/webjars/下找资源
 
 webjars是指以jar包方式引入的静态资源。例如通过webjars导入jquery，前端将会访问
 
 Localhost:8080/webjars/jquery/3.3.1/jquery.js，那么它将会被映射到classpath下的路径。
 
- 
+- 规则2：访问当前项目的任何资源，都会从这几个路径去找内容：
 
-规则2：访问当前项目的任何资源，都会从
+   Class:/META-INF/resources
+
+  Classpath:/resources/（也就是编译器的resource下再新建一个resources）
+
+  Classpath:/static/
+
+  Classpath:/public/
+
+  /（当前项目根目录）
 
 ![计算机生成了可选文字: this.staticPathPattern](file:///C:/Users/王海奇/AppData/Local/Temp/msohtmlclip1/01/clip_image001.png)
 
- 
 
-这几个路径去找内容：
-
-Class:/META-INF/resources
-
-Classpath:/resources/（也就是编译器的resource下再新建一个resources）
-
-Classpath:/static/
-
-Classpath:/public/
-
-/（当前项目根目录）
 
  
 
-规则3：欢迎页的映射，是静态资源文件夹下的所有index.html页面，被"/**"映射。
+- 规则3：欢迎页的映射，是静态资源文件夹下的所有index.html页面，被"/**"映射。
 
 例如localhost:8080 就会找index.html页面
 
  
 
-规则4：要指定页面的图标，静态文件夹下放一个**/favicon.ico 
+- 规则4：要指定页面的图标，静态文件夹下放一个**/favicon.ico 
 
  
 
@@ -133,21 +111,18 @@ SpringBoot推荐的Thymleaf：
 <body>
 ```
 
+
+
+``` html
 <p>Thymeleaf渲染页面</p>
-
-`<divth:id="div1"th:class="111"th:text="${hello}">显示欢迎信息</div>`
-
+`<div th:id="div1"th:class="111"th:text="${hello}">显示欢迎信息</div>`
 `</body>`
-
 `</html>`
-
- 
+```
 
 th命名空间中的标签实际上是具有动态替换功能，它能将原来标签中的静态属性值替换为指定值。
 
 在官网文档中，说明了th标签以及他们的优先级。
-
- 
 
  
 
@@ -259,6 +234,24 @@ public class MyMvcConfig implements WebMvcConfigurer {
    }
    ```
 
+### 例子：定制我们的视图解析器
+
+我们只需要自己给容器中加一个视图解析器，ContentNegotiatingViewResolver就会自动将它组合进来。
+
+```java
+@Bean
+public ViewResolvere myViewResolver(){
+    return new MybiewResolver();
+}
+private static class MyViewResolver implements ViewResolver{
+    //实现视图解析器方法
+}
+```
+
+这里自己实现的解析器也将直接被组合到SpringMVC中去。
+
+![1542802999816](C:\Users\王海奇\AppData\Roaming\Typora\typora-user-images\1542802999816.png)
+
 
 
 ### 全面接管Spring MVC
@@ -295,27 +288,8 @@ public class DelegatingWebMvcConfiguration extends WebMvcConfigurationSupport {
 public class WebMvcAutoConfiguration {
 ```
 
-## 如何修改SpringBoot的默认配置
+## 总结：如何修改SpringBoot的默认配置
 
 1. SpringBoot 自动配置很多组建的时候，都是先看容器中有没有用户自己配置的，如果没有才自动配置，有的话就用用户的。有些组件可以有多个配置，能够将自动配置和用户的结合起来。
 2. 在SpringBoot中，会有非常多的XXXConfigurer帮助我们进行扩展配置
 
-## 定制我们的视图解析器
-
-我们只需要自己给容器中加一个视图解析器，ContentNegotiatingViewResolver就会自动将它组合进来。
-
-```java
-@Bean
-public ViewResolvere myViewResolver(){
-    return new MybiewResolver();
-}
-private static class MyViewResolver implements ViewResolver{
-    //实现视图解析器方法
-}
-```
-
-这里自己实现的解析器也将直接被组合到SpringMVC中去。
-
-![1542802999816](C:\Users\王海奇\AppData\Roaming\Typora\typora-user-images\1542802999816.png)
-
-## 
