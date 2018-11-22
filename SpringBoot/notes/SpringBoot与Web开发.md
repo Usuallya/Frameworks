@@ -154,7 +154,7 @@ The auto-configuration adds the following features on top of Spring’s defaults
 
   ==自动配置了viewResolver，根据方法的返回值得到视图对象，视图对象决定如何渲染==
 
-  ==ContentNegotiatingViewResolver:组合所有的视图解析器==
+  ==ContentNegotiatingViewResolver:组合所有的视图解析器，我们可以自己给容器中添加一个视图解析器，它会自动组合进来。==
 
 - Support for serving static resources, including support for WebJars (covered [later in this document](https://docs.spring.io/spring-boot/docs/2.1.0.RELEASE/reference/htmlsingle/#boot-features-spring-mvc-static-content))). ==静态资源==
 
@@ -239,10 +239,12 @@ public class MyMvcConfig implements WebMvcConfigurer {
 我们只需要自己给容器中加一个视图解析器，ContentNegotiatingViewResolver就会自动将它组合进来。
 
 ```java
+//在启动类中添加这个@Bean
 @Bean
 public ViewResolvere myViewResolver(){
     return new MybiewResolver();
 }
+//写一个内部类
 private static class MyViewResolver implements ViewResolver{
     //实现视图解析器方法
 }
@@ -292,4 +294,190 @@ public class WebMvcAutoConfiguration {
 
 1. SpringBoot 自动配置很多组建的时候，都是先看容器中有没有用户自己配置的，如果没有才自动配置，有的话就用用户的。有些组件可以有多个配置，能够将自动配置和用户的结合起来。
 2. 在SpringBoot中，会有非常多的XXXConfigurer帮助我们进行扩展配置
+
+## SpringBoot CRUD应用
+
+### RestfulCRUD
+
+1、默认访问首页，通过addViewController的方式来解决，具体就是通过添加一个Configurer类，然后加入这个视图控制就行了。
+
+### 国际化
+
+首先在resources目录下创建i18n目录，添加页面名.properties国际化配置文件（默认文件）以及页面名_zh_CN.properties，也就是页面名加语言名加国家名。这样idea将会自动识别我们正在进行国际化配置。
+
+如果是之前采用Spring MVC，需要创建ResourceBundleManager，而Spring Boot已经帮我们创建好了。
+
+``` java
+@Configuration
+@ConditionalOnMissingBean(
+value = {MessageSource.class},
+search = SearchStrategy.CURRENT
+)
+@AutoConfigureOrder(-2147483648)
+@Conditional({MessageSourceAutoConfiguration.ResourceBundleCondition.class})
+@EnableConfigurationProperties
+public class MessageSourceAutoConfiguration {
+private static final Resource[] NO_RESOURCES = new Resource[0];
+
+public MessageSourceAutoConfiguration() {
+}
+
+//可见，可以通过spring.messages.basename设置一个包名，让SpringBoot去这里找，否则将会从类目录下去找。默认是根目录下的messages.properties
+@Bean
+@ConfigurationProperties(
+prefix = "spring.messages"
+)
+public MessageSourceProperties messageSourceProperties() {
+return new MessageSourceProperties();
+}
+
+@Bean
+public MessageSource messageSource(MessageSourceProperties properties) {
+ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+if (StringUtils.hasText(properties.getBasename())) {
+    
+//设置基础名（也就是去掉了语言、国家的名字）
+messageSource.setBasenames(StringUtils.commaDelimitedListToStringArray(StringUtils.trimAllWhitespace(properties.getBasename())));
+}
+if (properties.getEncoding() != null) {
+messageSource.setDefaultEncoding(properties.getEncoding().name());
+}
+messageSource.setFallbackToSystemLocale(properties.isFallbackToSystemLocale());
+Duration cacheDuration = properties.getCacheDuration();
+if (cacheDuration != null) {
+messageSource.setCacheMillis(cacheDuration.toMillis());
+} messageSource.setAlwaysUseMessageFormat(properties.isAlwaysUseMessageFormat());
+messageSource.setUseCodeAsDefaultMessage(properties.isUseCodeAsDefaultMessage());
+return messageSource;
+}
+```
+
+在国际化页面取值时，是根据浏览器的语言设置信息来切换的。
+
+原理：国际化Locale（区域信息对象）在SpringMVC中，是通过LocalResolver来获取的。查看源码可以发现，在WebMvcAutoConfiguration中，是从请求头中获取这个区域信息的。我们可以自己来写一个LocaleResolver。来实现从链接上获取请求信息。
+
+``` java
+//首先自己实现一个国际化解析器，负责从连接中获取国际化请求信息
+public class MyLocaleResolver implements LocaleResolver {
+@Override
+public Locale resolveLocale(HttpServletRequest httpServletRequest) {
+String l = httpServletRequest.getParameter("l");
+
+Locale locale = Locale.getDefault();
+if(!StringUtils.isEmpty(l))
+{
+String[] split = l.split("_");
+locale = new Locale(split[0],split[1]);
+}
+return locale;
+}
+    
+
+//随后在自己的webmvcconfiger类中，将这个解析器加入到容器
+//注意这里有个大坑：方法名必须是localResolver，而不能是myLocaleResolver，否则不能生效。
+@Configuration
+public class MyWebConfigurer implements WebMvcConfigurer {
+@Bean
+public LocaleResolver localeResolver(){
+return new MyLocaleResolver();
+}
+```
+
+
+
+### 制作登录页面
+
+开发期间，模板引擎页面修改之后，有两个技巧：
+
+1. 要想实时生效，需要先禁用模板缓存
+2. 然后再每次页面修改后，使用ctrl+f9
+
+登录错误消息的提示
+
+``` html
+<p style="color:red" th:text="${msg}" th:if="${not #strings.isEmpty(msg)}"></p>
+```
+
+#### 表单重复提交问题
+
+假如在目前这个页面下，我们登录成功后，又刷新页面，就会提示表单重复提交。这是因为当前页面是服务器转发后显示的，而浏览器的刷新操作依然是上次请求时的状态，将会把登录的请求一模一样的再来一次，包括用户名密码都再发一次。这就产生了表单重复提交的问题。
+
+想要避免这个问题，可以考虑使用重定向来到达主页，而不是用转发。
+
+``` java
+//我们首先添加一个视图映射
+registry.addViewController("/main.html").setViewName("dashboard");
+
+//然后再控制器中，通过redirect重定向到main.html
+public class LoginController {
+@PostMapping("/user/login")
+public String login(@RequestParam("username")String username,
+@RequestParam("password")String password,
+Map<String,Object> map){
+if(!StringUtils.isEmpty(username) && password.equals("123456")){
+return "redirect:/main.html";
+}else{
+map.put("msg","用户名或密码错误");
+return "login";
+}
+}
+```
+
+但是这样又会遇到访问控制权限的问题，只要想访问都能直接进入dashboard，下面我们通过拦截器来进行登录检查。
+
+#### 拦截器
+
+首先自己写一个拦截器类，HandlerInterceptor接口。
+
+``` java
+public class LoginHandlerInterceptor implements HandlerInterceptor {
+@Override
+public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+Object user = request.getSession().getAttribute("loginUser");
+if(user==null){
+//返回登录页面
+request.setAttribute("msg","请先登录");
+request.getRequestDispatcher("/").forward(request,response);
+return false;
+}else
+return true;
+}
+```
+
+
+
+``` java
+//注册到configurer中
+@Override
+public void addInterceptors(InterceptorRegistry registry) {
+//表示任意多层路径下的任意请求
+//Spring Boot已经帮我们做好了静态资源映射，所以不用管了
+//Spring Boot2.0中，我们还是需要指定排除静态资源。否则会被拦截，踩坑了
+registry.addInterceptor(new LoginHandlerInterceptor()).addPathPatterns("/**").excludePathPatterns("/index.html","/","/user/login").excludePathPatterns("/asserts/**").excludePathPatterns("/webjars/**");
+}
+}
+```
+
+
+
+#### 功能点1：CRUD员工列表 Restful风格
+
+RestfulCRUD和普通请求方式的对比：
+
+|      | 普通CRUD         | RestfulCRUD     |
+| ---- | ---------------- | --------------- |
+| 查询 | getEmp           | emp             |
+| 添加 | addEmp?xxx       | emp             |
+| 修改 | updateEmp?id=xxx | emp/{id}_update |
+| 删除 | deleteEmp?id=xxx | emp{id}_delete  |
+
+|              | 请求URI  | 请求方式 |
+| ------------ | -------- | -------- |
+| 查询所有员工 | emps     | GET      |
+| 查询某个员工 | emp/{id} | GET      |
+| 来到添加页面 | emp      | GET      |
+| 添加员工     | emp      | POST     |
+| 来到修改页面 | emp/{id} | GET      |
+| 修改员工     | emp/{id} | PUT      |
+| 删除员工     | emp{id}  | DELETE   |
 
