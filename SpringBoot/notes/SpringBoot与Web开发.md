@@ -293,7 +293,7 @@ public class WebMvcAutoConfiguration {
 ## 总结：如何修改SpringBoot的默认配置
 
 1. SpringBoot 自动配置很多组建的时候，都是先看容器中有没有用户自己配置的，如果没有才自动配置，有的话就用用户的。有些组件可以有多个配置，能够将自动配置和用户的结合起来。
-2. 在SpringBoot中，会有非常多的XXXConfigurer帮助我们进行扩展配置
+2. 在SpringBoot中，会有非常多的XXXConfigurer或者xxxCustomizer帮助我们进行扩展配置
 
 ## SpringBoot CRUD应用
 

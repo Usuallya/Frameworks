@@ -5,7 +5,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 import org.springframework.stereotype.Repository;
 
-@Repository
+@Mapper
 public interface UsersMapper {
     @Select("INSERT INTO users(name,age) VALUES(#{username},#{age})")
     void insertUser(Users user);
